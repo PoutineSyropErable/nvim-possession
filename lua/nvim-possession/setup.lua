@@ -28,6 +28,23 @@ M.setup = function(user_opts)
 		return cur_session ~= nil and user_config.sessions.sessions_icon .. cur_session or nil
 	end
 
+	---update loaded session with current status
+	M.update = function()
+		local cur_session = vim.g[user_config.sessions.sessions_variable]
+		if cur_session ~= nil then
+			local confirm = vim.fn.confirm("overwrite session?", "&Yes\n&No", 2)
+			if confirm == 1 then
+				if type(user_config.save_hook) == "function" then
+					user_config.save_hook()
+				end
+				vim.cmd.mksession({ args = { user_config.sessions.sessions_path .. cur_session }, bang = true })
+				print("updated session: " .. cur_session)
+			end
+		else
+			print("no session loaded")
+		end
+	end
+
 	---save current session if session path exists
 	---return if path does not exist
 	M.new = function()
@@ -47,7 +64,9 @@ M.setup = function(user_opts)
 			end
 		end
 	end
+	fzf.config.set_action_helpstr(M.new, "new-session")
 
+	-- create a new session given a name
 	M.create = function(session_name)
 		if session_name == "" then
 			print("Invalid session name")
@@ -67,25 +86,7 @@ M.setup = function(user_opts)
 			print("⚠️ Session '" .. session_name .. "' already exists")
 		end
 	end
-
-	fzf.config.set_action_helpstr(M.new, "new-session")
-
-	---update loaded session with current status
-	M.update = function()
-		local cur_session = vim.g[user_config.sessions.sessions_variable]
-		if cur_session ~= nil then
-			local confirm = vim.fn.confirm("overwrite session?", "&Yes\n&No", 2)
-			if confirm == 1 then
-				if type(user_config.save_hook) == "function" then
-					user_config.save_hook()
-				end
-				vim.cmd.mksession({ args = { user_config.sessions.sessions_path .. cur_session }, bang = true })
-				print("updated session: " .. cur_session)
-			end
-		else
-			print("no session loaded")
-		end
-	end
+	fzf.config.set_action_helpstr(M.create, "create-session")
 
 	---load selected session
 	---@param selected string
@@ -101,6 +102,38 @@ M.setup = function(user_opts)
 		end
 	end
 	fzf.config.set_action_helpstr(M.load, "load-session")
+
+	-- Function to either load or create a session
+	M.load_or_create = function(session_name)
+		if session_name == "" then
+			print("Invalid session name")
+			return
+		end
+
+		-- Define the session file path
+		local session_file = user_config.sessions.sessions_path .. session_name
+
+		-- Check if the session file exists
+		local session_exists = next(vim.fs.find(session_name, { path = user_config.sessions.sessions_path })) ~= nil
+
+		if session_exists then
+			-- If the session exists, load it
+			print("Loading session: " .. session_name)
+			vim.cmd.source(session_file) -- Load the session
+			vim.g[user_config.sessions.sessions_variable] = vim.fs.basename(session_name) -- Set the session variable
+
+			-- Call post hook if defined
+			if type(user_config.post_hook) == "function" then
+				user_config.post_hook()
+			end
+		else
+			-- If the session doesn't exist, create it
+			print("Creating session: " .. session_name)
+			vim.cmd.mksession({ args = { session_file } }) -- Create the session
+			vim.g[user_config.sessions.sessions_variable] = vim.fs.basename(session_name) -- Set the session variable
+		end
+	end
+	fzf.config.set_action_helpstr(M.load_or_create, "load-or-create-session")
 
 	---delete selected session
 	---@param selected string
