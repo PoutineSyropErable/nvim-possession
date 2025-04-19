@@ -137,6 +137,20 @@ M.setup = function(user_opts)
 		end
 	end
 	fzf.config.set_action_helpstr(M.load_or_create, "load-or-create-session")
+	-- In Lua, define a function that optionally loads session then opens files
+
+	M.load_session_and_open = function(session_name, files)
+		if session_name then
+			M.load_or_create(session_name)
+		end
+
+		vim.schedule(function()
+			for _, f in ipairs(files) do
+				print("editing file: " .. vim.inspect(f))
+				vim.cmd("edit " .. f)
+			end
+		end)
+	end
 
 	---delete selected session
 	---@param selected string

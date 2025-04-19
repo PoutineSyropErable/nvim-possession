@@ -1,6 +1,6 @@
 local M = {}
 
-local function notify_debug(message)
+local function send_notification(message)
 	local cmd = string.format("notify-send -t 5000 '[Neovim Debug]' '%s'", message)
 	os.execute(cmd) -- Send notification
 	print("🟢 Debug: " .. message) -- Also log to Neovim

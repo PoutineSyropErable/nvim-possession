@@ -1,17 +1,23 @@
 local M = {}
 
+local function send_notification(message)
+	local cmd = string.format("notify-send -t 5000 '[Neovim Debug]' '%s'", message)
+	os.execute(cmd) -- Send notification
+	print("🟢 Debug: " .. message) -- Also log to Neovim
+end
+
 -- Make sure nvim-possession is available
 local possession = require("nvim-possession.regular_init")
 
 -- Function to ensure sessions_path is created if its parent directory exists
-local function ensure_sessions_path_exists(user_config)
+local function ensure_session_dir_path_exists(user_config)
 	-- Get the parent directory of the sessions_path
 	local parent_dir = vim.fn.fnamemodify(user_config.sessions.sessions_path, ":p:h")
 
 	-- Check if the parent directory exists
 	if vim.fn.isdirectory(parent_dir) == 0 then
 		-- If the parent directory doesn't exist, print an error and return
-		print("Error: Parent directory '" .. parent_dir .. "' does not exist.", vim.log.levels.ERROR)
+		send_notification("Error: Parent directory '" .. parent_dir .. "' does not exist.")
 		return false
 	end
 
@@ -35,7 +41,7 @@ vim.api.nvim_create_user_command("NvimPossessionCreate", function(opts)
 		return
 	end
 
-	local ret = ensure_sessions_path_exists(possession.user_config)
+	local ret = ensure_session_dir_path_exists(possession.user_config)
 	if not ret then
 		return
 	end
@@ -52,7 +58,7 @@ vim.api.nvim_create_user_command("NvimPossessionLoad", function(opts)
 		return
 	end
 
-	local ret = ensure_sessions_path_exists(possession.user_config)
+	local ret = ensure_session_dir_path_exists(possession.user_config)
 	if not ret then
 		return
 	end
@@ -68,7 +74,7 @@ vim.api.nvim_create_user_command("NvimPossessionLoadOrCreate", function(opts)
 		return
 	end
 
-	local ret = ensure_sessions_path_exists(possession.user_config)
+	local ret = ensure_session_dir_path_exists(possession.user_config)
 	if not ret then
 		return
 	end
@@ -76,5 +82,15 @@ vim.api.nvim_create_user_command("NvimPossessionLoadOrCreate", function(opts)
 	-- Load the selected session
 	possession.load_or_create(session_name)
 end, { nargs = 1 }) -- `nargs = 1` ensures exactly one argument is required
+
+-- In Lua, define a function that optionally loads session then opens files
+M.load_session_and_open = function(session_name, files)
+	if session_name then
+		require("nvim-possession").load_or_create(session_name)
+	end
+	for _, f in ipairs(files) do
+		vim.cmd("edit " .. f)
+	end
+end
 
 return M
