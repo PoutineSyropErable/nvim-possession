@@ -84,7 +84,7 @@ end
 M.autosave = function(config)
 	local cur_session = vim.g[config.sessions.sessions_variable]
 
-	notify_debug("auto saving in M.autosave" .. vim.inspect(cur_session))
+	-- notify_debug("auto saving in M.autosave" .. vim.inspect(cur_session))
 	if type(config.save_hook) == "function" then
 		config.save_hook()
 	end
