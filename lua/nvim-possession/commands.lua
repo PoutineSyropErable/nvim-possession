@@ -1,7 +1,7 @@
 local M = {}
 
 -- Make sure nvim-possession is available
-local posession = require("nvim-possession.setup")
+local posession = require("nvim-possession.regular_init")
 
 -- Create NvimPosessionCreate command
 vim.api.nvim_create_user_command("NvimPossessionCreate", function(opts)
