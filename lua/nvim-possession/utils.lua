@@ -1,5 +1,11 @@
 local M = {}
 
+local function notify_debug(message)
+	local cmd = string.format("notify-send -t 5000 '[Neovim Debug]' '%s'", message)
+	os.execute(cmd) -- Send notification
+	print("🟢 Debug: " .. message) -- Also log to Neovim
+end
+
 ---return the list of files in the session
 ---@param file string
 ---@return table
@@ -77,6 +83,8 @@ end
 ---@param config table
 M.autosave = function(config)
 	local cur_session = vim.g[config.sessions.sessions_variable]
+
+	notify_debug("auto saving in M.autosave" .. vim.inspect(cur_session))
 	if type(config.save_hook) == "function" then
 		config.save_hook()
 	end
@@ -93,12 +101,15 @@ M.autoswitch = function(config)
 	vim.cmd.write()
 	M.autosave(config)
 	vim.cmd.bufdo("e")
-	local buf_list = vim.tbl_filter(function(buf)
-		return vim.api.nvim_buf_is_valid(buf)
-			and vim.api.nvim_buf_get_option(buf, "buflisted")
-			and vim.api.nvim_buf_get_option(buf, "modifiable")
-			and not M.is_in_list(vim.api.nvim_buf_get_option(buf, "filetype"), config.autoswitch.exclude_ft)
-	end, vim.api.nvim_list_bufs())
+	local buf_list = vim.tbl_filter(
+		function(buf)
+			return vim.api.nvim_buf_is_valid(buf)
+				and vim.api.nvim_buf_get_option(buf, "buflisted")
+				and vim.api.nvim_buf_get_option(buf, "modifiable")
+				and not M.is_in_list(vim.api.nvim_buf_get_option(buf, "filetype"), config.autoswitch.exclude_ft)
+		end,
+		vim.api.nvim_list_bufs()
+	)
 	for _, buf in pairs(buf_list) do
 		vim.cmd("bd " .. buf)
 	end
