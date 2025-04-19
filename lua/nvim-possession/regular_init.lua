@@ -21,6 +21,9 @@ M.setup = function(user_opts)
 
 	local user_config = vim.tbl_deep_extend("force", config, user_opts or {})
 
+	M.user_config = user_config
+	-- kinda bad but who cares
+
 	---get global variable with session name: useful for statusbar components
 	---@return string|nil
 	M.status = function()

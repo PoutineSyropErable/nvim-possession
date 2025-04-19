@@ -1,9 +1,31 @@
 local M = {}
 
 -- Make sure nvim-possession is available
-local posession = require("nvim-possession.regular_init")
+local possession = require("nvim-possession.regular_init")
 
-local user_config = posession.user_config
+-- Function to ensure sessions_path is created if its parent directory exists
+local function ensure_sessions_path_exists(user_config)
+	-- Get the parent directory of the sessions_path
+	local parent_dir = vim.fn.fnamemodify(user_config.sessions.sessions_path, ":p:h")
+
+	-- Check if the parent directory exists
+	if vim.fn.isdirectory(parent_dir) == 0 then
+		-- If the parent directory doesn't exist, print an error and return
+		print("Error: Parent directory '" .. parent_dir .. "' does not exist.", vim.log.levels.ERROR)
+		return false
+	end
+
+	-- If the sessions_path directory doesn't exist, create it
+	if vim.fn.isdirectory(user_config.sessions.sessions_path) == 0 then
+		vim.fn.mkdir(user_config.sessions.sessions_path, "p") -- Create sessions_path
+		print("Created sessions_path: " .. user_config.sessions.sessions_path)
+		return true
+	else
+		-- If the directory already exists, inform the user
+		print("sessions_path already exists: " .. user_config.sessions.sessions_path)
+		return true
+	end
+end
 
 -- Create NvimPosessionCreate command
 vim.api.nvim_create_user_command("NvimPossessionCreate", function(opts)
@@ -13,13 +35,13 @@ vim.api.nvim_create_user_command("NvimPossessionCreate", function(opts)
 		return
 	end
 
-	if vim.fn.finddir(user_config.sessions.sessions_path) == "" then
-		vim.fn.mkdir(user_config.sessions.sessions_path, "p") -- "p" means create parent directories if necessary
-		print("sessions_path created: " .. user_config.sessions.sessions_path)
+	local ret = ensure_sessions_path_exists(possession.user_config)
+	if not ret then
+		return
 	end
 
 	-- Call the session creation function from nvim-possession
-	posession.create(session_name)
+	possession.create(session_name)
 end, { nargs = 1 }) -- `nargs = 1` ensures exactly one argument is required
 
 -- Create NvimPosessionLoad command
@@ -30,13 +52,13 @@ vim.api.nvim_create_user_command("NvimPossessionLoad", function(opts)
 		return
 	end
 
-	if vim.fn.finddir(user_config.sessions.sessions_path) == "" then
-		vim.fn.mkdir(user_config.sessions.sessions_path, "p") -- "p" means create parent directories if necessary
-		print("sessions_path created: " .. user_config.sessions.sessions_path)
+	local ret = ensure_sessions_path_exists(possession.user_config)
+	if not ret then
+		return
 	end
 
 	-- Load the selected session
-	posession.load(session_name)
+	possession.load(session_name)
 end, { nargs = 1 }) -- `nargs = 1` ensures exactly one argument is required
 
 vim.api.nvim_create_user_command("NvimPossessionLoadOrCreate", function(opts)
@@ -46,13 +68,13 @@ vim.api.nvim_create_user_command("NvimPossessionLoadOrCreate", function(opts)
 		return
 	end
 
-	if vim.fn.finddir(user_config.sessions.sessions_path) == "" then
-		vim.fn.mkdir(user_config.sessions.sessions_path, "p") -- "p" means create parent directories if necessary
-		print("sessions_path created: " .. user_config.sessions.sessions_path)
+	local ret = ensure_sessions_path_exists(possession.user_config)
+	if not ret then
+		return
 	end
 
 	-- Load the selected session
-	posession.load_or_create(session_name)
+	possession.load_or_create(session_name)
 end, { nargs = 1 }) -- `nargs = 1` ensures exactly one argument is required
 
 return M
