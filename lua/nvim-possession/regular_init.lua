@@ -8,7 +8,7 @@ local M = {}
 local PRINT_CUSTOM_DEBUG = true
 local USE_PRINT = false
 
-local function print_custom(level, ...)
+local function print_custom(...)
 	if not PRINT_CUSTOM_DEBUG then
 		return
 	end
@@ -22,7 +22,7 @@ local function print_custom(level, ...)
 	if USE_PRINT then
 		print(msg)
 	else
-		vim.notify(msg, level or vim.log.levels.INFO)
+		vim.notify(msg, vim.log.levels.INFO)
 	end
 end
 
