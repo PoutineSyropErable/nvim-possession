@@ -141,7 +141,7 @@ M.setup = function(user_opts)
 		end
 
 		local session_file = get_session_file(session_name)
-		print_custom("💾 Session file is: " .. session_file)
+		print_custom("💾 (internals: Load or Create) Session file is: " .. session_file)
 		local session_exists = vim.fn.filereadable(session_file) == 1
 
 		if session_exists then
@@ -157,6 +157,9 @@ M.setup = function(user_opts)
 		else
 			-- If the session doesn't exist, create it
 			print_custom("Creating session: " .. session_name)
+
+			-- ✅ make sure sessions directory exists
+			vim.fn.mkdir(user_config.sessions.sessions_path, "p")
 			vim.cmd.mksession({ args = { session_file } }) -- Create the session
 			vim.g[user_config.sessions.sessions_variable] = vim.fs.basename(session_name) -- Set the session variable
 		end
