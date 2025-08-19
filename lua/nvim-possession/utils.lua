@@ -89,7 +89,9 @@ M.autosave = function(config)
 		config.save_hook()
 	end
 	if cur_session ~= nil then
-		vim.cmd.mksession({ args = { config.sessions.sessions_path .. cur_session }, bang = true })
+		local session_file = config.sessions.sessions_path .. cur_session .. ".vim"
+		vim.fn.mkdir(config.sessions.sessions_path, "p") -- ensure directory exists
+		vim.cmd.mksession({ args = { session_file }, bang = true })
 	end
 end
 
