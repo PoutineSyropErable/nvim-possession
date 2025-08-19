@@ -119,7 +119,7 @@ M.setup = function(user_opts)
 		-- Define full session file path
 		local session_file = get_session_file(session_name)
 
-		print_custom("💾 Session file is: " .. session_file)
+		print_custom("💾 (internals) Session file is: " .. session_file)
 
 		-- Check if session already exists
 		if vim.fn.filereadable(session_file) == 0 then
