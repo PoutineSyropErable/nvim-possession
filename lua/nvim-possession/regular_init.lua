@@ -173,6 +173,29 @@ M.setup = function(user_opts)
 		end)
 	end
 
+	---wipe all sessions in the sessions directory
+	local function wipe_all_sessions()
+		local session_dir = vim.fn.stdpath("data") .. "/sessions/"
+		local iter = vim.uv.fs_scandir(session_dir)
+		if not iter then
+			print("Session directory does not exist")
+			return
+		end
+
+		local name, type = vim.uv.fs_scandir_next(iter)
+		while name do
+			local full_path = session_dir .. name
+			local normalized_path = vim.fs.normalize(full_path)
+
+			-- Only delete if it's a regular file and a child of session_dir
+			if type == "file" and vim.startswith(normalized_path, vim.fs.normalize(session_dir)) then
+				os.remove(full_path)
+			end
+
+			name, type = vim.uv.fs_scandir_next(iter)
+		end
+	end
+
 	---delete selected session
 	---@param selected string
 	M.delete_selected = function(selected)
