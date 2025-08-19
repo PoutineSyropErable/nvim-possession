@@ -5,6 +5,27 @@ local sort = require("nvim-possession.sorting")
 
 local M = {}
 
+local PRINT_CUSTOM_DEBUG = true
+local USE_PRINT = false
+
+local function print_custom(level, ...)
+	if not PRINT_CUSTOM_DEBUG then
+		return
+	end
+
+	local parts = {}
+	for _, v in ipairs({ ... }) do
+		table.insert(parts, tostring(v))
+	end
+	local msg = table.concat(parts, "\t")
+
+	if USE_PRINT then
+		print(msg)
+	else
+		vim.notify(msg, level or vim.log.levels.INFO)
+	end
+end
+
 ---expose the following interfaces:
 ---require("nvim-possession").new()
 ---require("nvim-possession").list()
@@ -15,7 +36,7 @@ local M = {}
 M.setup = function(user_opts)
 	local fzf_ok, fzf = pcall(require, "fzf-lua")
 	if not fzf_ok then
-		print("fzf-lua required as dependency")
+		print_custom("fzf-lua required as dependency")
 		return
 	end
 
@@ -41,10 +62,10 @@ M.setup = function(user_opts)
 					user_config.save_hook()
 				end
 				vim.cmd.mksession({ args = { user_config.sessions.sessions_path .. cur_session }, bang = true })
-				print("updated session: " .. cur_session)
+				print_custom("updated session: " .. cur_session)
 			end
 		else
-			print("no session loaded")
+			print_custom("no session loaded")
 		end
 	end
 
@@ -52,7 +73,7 @@ M.setup = function(user_opts)
 	---return if path does not exist
 	M.new = function()
 		if vim.fn.finddir(user_config.sessions.sessions_path) == "" then
-			print("sessions_path does not exist")
+			print_custom("sessions_path does not exist")
 			return
 		end
 
@@ -61,9 +82,9 @@ M.setup = function(user_opts)
 			if next(vim.fs.find(name, { path = user_config.sessions.sessions_path })) == nil then
 				vim.cmd.mksession({ args = { user_config.sessions.sessions_path .. name } })
 				vim.g[user_config.sessions.sessions_variable] = vim.fs.basename(name)
-				print("saved in: " .. user_config.sessions.sessions_path .. name)
+				print_custom("saved in: " .. user_config.sessions.sessions_path .. name)
 			else
-				print("session already exists")
+				print_custom("session already exists")
 			end
 		end
 	end
@@ -72,21 +93,21 @@ M.setup = function(user_opts)
 	-- create a new session given a name
 	M.create = function(session_name)
 		if session_name == "" then
-			print("Invalid session name")
+			print_custom("Invalid session name")
 			return
 		end
 
-		-- print("💾 session name is : " .. session_name)
+		-- print_custom("💾 session name is : " .. session_name)
 		local session_file = user_config.sessions.sessions_path .. session_name
-		-- print("💾 Session file is: " .. session_file)
+		-- print_custom("💾 Session file is: " .. session_file)
 
 		-- Check if session already exists
 		if next(vim.fs.find(session_name, { path = user_config.sessions.sessions_path })) == nil then
 			vim.cmd.mksession({ args = { session_file } })
 			vim.g[user_config.sessions.sessions_variable] = vim.fs.basename(session_name)
-			-- print("💾 Session saved in: " .. session_file)
+			-- print_custom("💾 Session saved in: " .. session_file)
 		else
-			print("⚠️ Session '" .. session_name .. "' already exists")
+			print_custom("⚠️ Session '" .. session_name .. "' already exists")
 		end
 	end
 	fzf.config.set_action_helpstr(M.create, "create-session")
@@ -109,7 +130,7 @@ M.setup = function(user_opts)
 	-- Function to either load or create a session
 	M.load_or_create = function(session_name)
 		if session_name == "" then
-			print("Invalid session name")
+			print_custom("Invalid session name")
 			return
 		end
 
@@ -121,7 +142,7 @@ M.setup = function(user_opts)
 
 		if session_exists then
 			-- If the session exists, load it
-			print("Loading session: " .. session_name)
+			print_custom("Loading session: " .. session_name)
 			vim.cmd.source(session_file) -- Load the session
 			vim.g[user_config.sessions.sessions_variable] = vim.fs.basename(session_name) -- Set the session variable
 
@@ -131,7 +152,7 @@ M.setup = function(user_opts)
 			end
 		else
 			-- If the session doesn't exist, create it
-			print("Creating session: " .. session_name)
+			print_custom("Creating session: " .. session_name)
 			vim.cmd.mksession({ args = { session_file } }) -- Create the session
 			vim.g[user_config.sessions.sessions_variable] = vim.fs.basename(session_name) -- Set the session variable
 		end
@@ -146,7 +167,7 @@ M.setup = function(user_opts)
 
 		vim.schedule(function()
 			for _, f in ipairs(files) do
-				print("editing file: " .. vim.inspect(f))
+				print_custom("editing file: " .. vim.inspect(f))
 				vim.cmd("edit " .. f)
 			end
 		end)
@@ -159,7 +180,7 @@ M.setup = function(user_opts)
 		local confirm = vim.fn.confirm("delete session?", "&Yes\n&No", 2)
 		if confirm == 1 then
 			os.remove(session)
-			print("deleted " .. session)
+			print_custom("deleted " .. session)
 			if vim.g[user_config.sessions.sessions_variable] == vim.fs.basename(session) then
 				vim.g[user_config.sessions.sessions_variable] = nil
 			end
@@ -175,13 +196,13 @@ M.setup = function(user_opts)
 			if confirm == 1 then
 				local session_path = user_config.sessions.sessions_path .. cur_session
 				os.remove(session_path)
-				print("deleted " .. session_path)
+				print_custom("deleted " .. session_path)
 				if vim.g[user_config.sessions.sessions_variable] == vim.fs.basename(session_path) then
 					vim.g[user_config.sessions.sessions_variable] = nil
 				end
 			end
 		else
-			print("no active session")
+			print_custom("no active session")
 		end
 	end
 
@@ -190,12 +211,12 @@ M.setup = function(user_opts)
 	M.list = function()
 		local iter = vim.uv.fs_scandir(user_config.sessions.sessions_path)
 		if iter == nil then
-			print("session folder " .. user_config.sessions.sessions_path .. " does not exist")
+			print_custom("session folder " .. user_config.sessions.sessions_path .. " does not exist")
 			return
 		end
 		local next = vim.uv.fs_scandir_next(iter)
 		if next == nil then
-			print("no saved sessions")
+			print_custom("no saved sessions")
 			return
 		end
 
