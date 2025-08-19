@@ -90,28 +90,6 @@ M.setup = function(user_opts)
 	end
 	fzf.config.set_action_helpstr(M.new, "new-session")
 
-	-- create a new session given a name
-	M.create = function(session_name)
-		if session_name == "" then
-			print_custom("Invalid session name")
-			return
-		end
-
-		-- print_custom("💾 session name is : " .. session_name)
-		local session_file = user_config.sessions.sessions_path .. session_name
-		-- print_custom("💾 Session file is: " .. session_file)
-
-		-- Check if session already exists
-		if next(vim.fs.find(session_name, { path = user_config.sessions.sessions_path })) == nil then
-			vim.cmd.mksession({ args = { session_file } })
-			vim.g[user_config.sessions.sessions_variable] = vim.fs.basename(session_name)
-			-- print_custom("💾 Session saved in: " .. session_file)
-		else
-			print_custom("⚠️ Session '" .. session_name .. "' already exists")
-		end
-	end
-	fzf.config.set_action_helpstr(M.create, "create-session")
-
 	---load selected session
 	---@param selected string
 	M.load = function(selected)
@@ -127,6 +105,30 @@ M.setup = function(user_opts)
 	end
 	fzf.config.set_action_helpstr(M.load, "load-session")
 
+	-- create a new session given a name
+	M.create = function(session_name)
+		if session_name == "" then
+			print_custom("Invalid session name")
+			return
+		end
+
+		-- print_custom("💾 session name is : " .. session_name)
+		-- Define full session file path
+		local session_file = vim.fs.normalize(user_config.sessions.sessions_path .. session_name .. ".vim")
+
+		-- print_custom("💾 Session file is: " .. session_file)
+
+		-- Check if session already exists
+		if next(vim.fs.find(session_name, { path = user_config.sessions.sessions_path })) == nil then
+			vim.cmd.mksession({ args = { session_file } })
+			vim.g[user_config.sessions.sessions_variable] = vim.fs.basename(session_name)
+			-- print_custom("💾 Session saved in: " .. session_file)
+		else
+			print_custom("⚠️ Session '" .. session_name .. "' already exists")
+		end
+	end
+	fzf.config.set_action_helpstr(M.create, "create-session")
+
 	-- Function to either load or create a session
 	M.load_or_create = function(session_name)
 		if session_name == "" then
@@ -135,7 +137,7 @@ M.setup = function(user_opts)
 		end
 
 		-- Define the session file path
-		local session_file = user_config.sessions.sessions_path .. session_name
+		local session_file = vim.fs.normalize(user_config.sessions.sessions_path .. session_name .. ".vim")
 
 		-- Check if the session file exists
 		local session_exists = next(vim.fs.find(session_name, { path = user_config.sessions.sessions_path })) ~= nil
