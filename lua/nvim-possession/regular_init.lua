@@ -115,18 +115,18 @@ M.setup = function(user_opts)
 			return
 		end
 
-		-- print_custom("💾 session name is : " .. session_name)
+		print_custom("💾 session name is : " .. session_name)
 		-- Define full session file path
 		local session_file = get_session_file(session_name)
 
-		-- print_custom("💾 Session file is: " .. session_file)
+		print_custom("💾 Session file is: " .. session_file)
 
 		-- Check if session already exists
 		if vim.fn.filereadable(session_file) == 0 then
 			vim.fn.mkdir(user_config.sessions.sessions_path, "p")
 			vim.cmd.mksession({ args = { session_file } })
 			vim.g[user_config.sessions.sessions_variable] = session_name
-			-- print_custom("💾 Session saved in: " .. session_file)
+			print_custom("💾 Session saved in: " .. session_file)
 		else
 			print_custom("⚠️ Session '" .. session_name .. "' already exists")
 		end
@@ -141,6 +141,7 @@ M.setup = function(user_opts)
 		end
 
 		local session_file = get_session_file(session_name)
+		print_custom("💾 Session file is: " .. session_file)
 		local session_exists = vim.fn.filereadable(session_file) == 1
 
 		if session_exists then
