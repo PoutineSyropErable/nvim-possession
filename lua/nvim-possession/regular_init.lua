@@ -1,3 +1,7 @@
+-- $HOME/.config/nvim/scripts/pythonScripts/open_remote_nvim.py
+-- $HOME/.config/nvim/nvim-possession/lua/nvim-possession/regular_init.lua
+-- $HOME/.config/nvim/lua/core/plugins_lazy/possessions.lua
+
 local config = require("nvim-possession.config")
 local ui = require("nvim-possession.ui")
 local utils = require("nvim-possession.utils")
@@ -168,10 +172,13 @@ M.setup = function(user_opts)
 	-- In Lua, define a function that optionally loads session then opens files
 
 	M.load_session_and_open = function(session_name, files)
+		-- $HOME/.config/nvim/scripts/pythonScripts/open_remote_nvim.py
+		-- $HOME/.config/nvim/lua/core/plugins_lazy/possessions.lua
 		if session_name then
 			M.load_or_create(session_name)
 		end
 
+		vim.cmd("edit " .. vim.api.nvim_buf_get_name(0))
 		vim.schedule(function()
 			for _, f in ipairs(files) do
 				print_custom("editing file: " .. vim.inspect(f))
