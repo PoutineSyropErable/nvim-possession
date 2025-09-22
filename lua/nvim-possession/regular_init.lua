@@ -45,7 +45,8 @@ M.setup = function(user_opts)
 	end
 
 	local user_config = vim.tbl_deep_extend("force", config, user_opts or {})
-	local function get_session_file(name) return vim.fs.normalize(user_config.sessions.sessions_path .. name .. ".vim") end
+	local function get_session_file(name) return vim.fs.normalize(user_config.sessions.sessions_path .. name) end
+	-- local function get_session_file(name) return vim.fs.normalize(user_config.sessions.sessions_path .. name .. ".vim") end
 
 	M.user_config = user_config
 	-- kinda bad but who cares
