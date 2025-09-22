@@ -189,26 +189,48 @@ M.setup = function(user_opts)
 		end)
 	end
 
-	---wipe all sessions in the sessions directory
+	---wipe all sessions in the configured sessions path
+	---non-recursive, only deletes *.vim files, warns for others
 	M.wipe_all_sessions = function()
-		local session_dir = vim.fn.stdpath("data") .. "/sessions/"
+		local session_dir = vim.fs.normalize(user_config.sessions.sessions_path)
 		local iter = vim.uv.fs_scandir(session_dir)
 		if not iter then
-			print("Session directory does not exist")
+			print_custom("Session directory does not exist: " .. session_dir)
 			return
 		end
 
+		local deleted = {}
+		local warned = {}
 		local name, type = vim.uv.fs_scandir_next(iter)
+
 		while name do
 			local full_path = session_dir .. name
-			local normalized_path = vim.fs.normalize(full_path)
-
-			-- Only delete if it's a regular file and a child of session_dir
-			if type == "file" and vim.startswith(normalized_path, vim.fs.normalize(session_dir)) then
-				os.remove(full_path)
+			if type == "file" then
+				if name:match("%.vim$") then
+					os.remove(full_path)
+					table.insert(deleted, full_path)
+				else
+					table.insert(warned, full_path)
+				end
 			end
-
+			-- ignore directories entirely (no recursion)
 			name, type = vim.uv.fs_scandir_next(iter)
+		end
+
+		if #deleted > 0 then
+			print_custom("Deleted sessions (*.vim) in " .. session_dir .. ":")
+			for _, s in ipairs(deleted) do
+				print_custom("  " .. s)
+			end
+		else
+			print_custom("No *.vim sessions found in " .. session_dir)
+		end
+
+		if #warned > 0 then
+			print_custom("Warning: some files in " .. session_dir .. " were not deleted (not *.vim):")
+			for _, w in ipairs(warned) do
+				print_custom("  " .. w)
+			end
 		end
 	end
 
