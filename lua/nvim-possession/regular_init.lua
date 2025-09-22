@@ -45,8 +45,8 @@ M.setup = function(user_opts)
 	end
 
 	local user_config = vim.tbl_deep_extend("force", config, user_opts or {})
-	local function get_session_file(name) return vim.fs.normalize(user_config.sessions.sessions_path .. name) end
-	-- local function get_session_file(name) return vim.fs.normalize(user_config.sessions.sessions_path .. name .. ".vim") end
+	-- local function get_session_file(name) return vim.fs.normalize(user_config.sessions.sessions_path .. name) end
+	local function get_session_file(name) return vim.fs.normalize(user_config.sessions.sessions_path .. name .. ".vim") end
 
 	M.user_config = user_config
 	-- kinda bad but who cares
@@ -214,7 +214,8 @@ M.setup = function(user_opts)
 	---delete selected session
 	---@param selected string
 	M.delete_selected = function(selected)
-		local session = get_session_file(selected[1])
+		local name = selected[1]:gsub("%.vim$", "") -- remove trailing .vim if present
+		local session = get_session_file(name)
 		local confirm = vim.fn.confirm("delete session?", "&Yes\n&No", 2)
 		if confirm == 1 then
 			os.remove(session)
