@@ -179,7 +179,8 @@ M.setup = function(user_opts)
 			M.load_or_create(session_name)
 		end
 
-		vim.cmd("edit " .. vim.api.nvim_buf_get_name(0))
+		-- vim.cmd("edit " .. vim.api.nvim_buf_get_name(0))
+		-- This doesn't fix the lsp attaching anyway, and... cause an error if there's no file
 		vim.schedule(function()
 			for _, f in ipairs(files) do
 				print_custom("editing file: " .. vim.inspect(f))
