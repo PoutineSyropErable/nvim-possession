@@ -204,7 +204,8 @@ M.setup = function(user_opts)
 		local name, type = vim.uv.fs_scandir_next(iter)
 
 		while name do
-			local full_path = session_dir .. name
+			local full_path = vim.fs.joinpath(session_dir, name)
+
 			if type == "file" then
 				if name:match("%.vim$") then
 					os.remove(full_path)
