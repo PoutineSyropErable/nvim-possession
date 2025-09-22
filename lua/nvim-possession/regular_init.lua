@@ -190,7 +190,7 @@ M.setup = function(user_opts)
 	end
 
 	---wipe all sessions in the sessions directory
-	local function wipe_all_sessions()
+	M.wipe_all_sessions = function()
 		local session_dir = vim.fn.stdpath("data") .. "/sessions/"
 		local iter = vim.uv.fs_scandir(session_dir)
 		if not iter then
